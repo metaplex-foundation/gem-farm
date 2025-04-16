@@ -52,7 +52,12 @@ pub fn assert_decode_metadata<'info>(
         return Err(error!(ErrorCode::BadMetadata));
     }
 
-    Ok(Metadata::from_account_info(metadata_account)?)
+    let data = &metadata_account.data.borrow();
+    if data.is_empty() || data[0] != mpl_token_metadata::state::Key::MetadataV1 as u8 {
+        return Err(error!(ErrorCode::BadMetadata));
+    }
+    let metadata = Metadata::deserialize(&mut data.as_ref())?;
+    Ok(metadata)
 }
 
 #[allow(clippy::too_many_arguments)]
